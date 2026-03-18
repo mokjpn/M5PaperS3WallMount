@@ -16,8 +16,8 @@ Triangle = Tuple[Vec3, Vec3, Vec3]
 
 
 VIEW_PRESETS = {
-    "front": {"rotation": (-28.0, 18.0, -18.0), "distance": 340.0},
-    "rear": {"rotation": (-24.0, -160.0, 12.0), "distance": 340.0},
+    "front": {"rotation": (-22.0, 20.0, -16.0), "distance": 335.0},
+    "rear": {"rotation": (-18.0, -156.0, 10.0), "distance": 335.0},
 }
 
 
@@ -171,36 +171,35 @@ def render(
     max_x = max(abs(point[0]) for point in all_points)
     max_y = max(abs(point[1]) for point in all_points)
     max_extent = max(max_x, max_y)
-    scale = min(width * 0.34, height * 0.42) / max_extent
+    scale = min(width * 0.42, height * 0.48) / max_extent
 
-    image = Image.new("RGBA", (width, height), "#f5f1eb")
+    image = Image.new("RGBA", (width, height), "#f6f6f6")
     background = ImageDraw.Draw(image)
     for y in range(height):
         t = y / max(height - 1, 1)
-        r = int(245 + (255 - 245) * t)
-        g = int(241 + (255 - 241) * t)
-        b = int(235 + (255 - 235) * t)
+        r = int(246 + (255 - 246) * t)
+        g = int(246 + (255 - 246) * t)
+        b = int(246 + (255 - 246) * t)
         background.line((0, y, width, y), fill=(r, g, b, 255))
 
     shadow = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     shadow_draw = ImageDraw.Draw(shadow)
     shadow_bounds = (
-        int(width * 0.23),
-        int(height * 0.70),
-        int(width * 0.77),
-        int(height * 0.87),
+        int(width * 0.25),
+        int(height * 0.72),
+        int(width * 0.75),
+        int(height * 0.86),
     )
-    shadow_draw.ellipse(shadow_bounds, fill=(125, 104, 85, 52))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(28))
+    shadow_draw.ellipse(shadow_bounds, fill=(40, 40, 40, 34))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(24))
     image.alpha_composite(shadow)
 
     draw = ImageDraw.Draw(image)
-    light = v_norm((-0.55, 0.8, 0.65))
-    base = (222, 214, 203)
-    edge = (118, 104, 91, 150)
+    light = v_norm((-0.45, 0.85, 0.55))
+    base = (242, 191, 86)
 
     for triangle, normal, avg_depth in sorted(rotated, key=lambda item: item[2]):
-        shade = max(0.22, min(1.0, 0.42 + 0.58 * v_dot(normal, light)))
+        shade = max(0.72, min(1.0, 0.84 + 0.20 * v_dot(normal, light)))
         color = tuple(int(channel * shade) for channel in base) + (255,)
         points_2d = []
         for point in triangle:
@@ -208,9 +207,9 @@ def render(
             sx = width / 2 + point[0] * scale * factor
             sy = height / 2 - point[1] * scale * factor
             points_2d.append((sx, sy))
-        draw.polygon(points_2d, fill=color, outline=edge)
+        draw.polygon(points_2d, fill=color)
 
-    image = image.filter(ImageFilter.UnsharpMask(radius=1.8, percent=130, threshold=3))
+    image = image.filter(ImageFilter.UnsharpMask(radius=1.4, percent=105, threshold=2))
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     image.save(output_path)
 
